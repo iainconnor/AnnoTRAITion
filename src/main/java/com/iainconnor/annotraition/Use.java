@@ -3,9 +3,11 @@ package com.iainconnor.annotraition;
 import java.lang.annotation.*;
 
 @Documented
-@Target (ElementType.FIELD)
+@Target (ElementType.TYPE)
 @Inherited
 @Retention (RetentionPolicy.SOURCE)
-public @interface Annotraition {
+public @interface Use {
+	Class value ();
 
+	String localVariable () default "";
 }
