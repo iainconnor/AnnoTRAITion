@@ -3,9 +3,9 @@ package com.iainconnor.annotraition;
 import java.lang.annotation.*;
 
 @Documented
-@Target(ElementType.FIELD)
+@Target (ElementType.FIELD)
 @Inherited
-@Retention(RetentionPolicy.SOURCE)
+@Retention (RetentionPolicy.SOURCE)
 public @interface Annotraition {
 
 }
