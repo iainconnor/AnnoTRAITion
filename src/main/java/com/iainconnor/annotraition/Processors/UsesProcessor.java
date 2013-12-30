@@ -20,6 +20,8 @@ public class UsesProcessor extends AbstractProcessor {
 		for (Element element : roundEnvironment.getElementsAnnotatedWith(Uses.class)) {
 			// Enforce that Traits are only used on Class definitions
 			if (element.getKind() == ElementKind.CLASS) {
+				TypeElement classElement = (TypeElement) element;
+
 				Uses uses = element.getAnnotation(Uses.class);
 
 				ArrayList<Use> traits = new ArrayList<Use>();
@@ -27,13 +29,13 @@ public class UsesProcessor extends AbstractProcessor {
 					traits.add(use);
 				}
 
-				Package traitedPackage = null;
+				String traitedPackage = null;
 				Element packageElement = element.getEnclosingElement();
 				if (packageElement.getKind() == ElementKind.PACKAGE) {
-					traitedPackage = (Package) packageElement;
+					traitedPackage = packageElement.toString();
 				}
 
-				Processor.generateClass(element.getClass(), traitedPackage, traits, processingEnv);
+				Processor.generateClass(classElement.getSimpleName().toString(), traitedPackage, traits, processingEnv);
 			}
 		}
 
