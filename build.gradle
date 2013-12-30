@@ -13,9 +13,13 @@ buildscript {
 
 apply plugin: 'apt'
 apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'com.iainconnor'
+version = '1.0.0-SNAPSHOT'
+project.ext.description = "The power of Traits through Annotations."
 
 sourceCompatibility = 1.5
-version = '1.0'
 
 repositories {
 	mavenCentral()
@@ -23,5 +27,17 @@ repositories {
 
 dependencies {
 	testCompile group: 'junit', name: 'junit', version: '4.11'
-	apt 'com.jakewharton:butterknife:4.0.1'
+}
+
+uploadArchives {
+	repositories {
+		mavenDeployer {
+			pom.project {
+				name project.getName()
+				description project.ext.description
+			}
+			repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+			repository url: 'file://' + new File("./maven").absolutePath
+		}
+	}
 }
