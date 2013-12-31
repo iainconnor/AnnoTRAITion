@@ -141,14 +141,24 @@ public class Processor extends AbstractProcessor {
 						methodSignature += " " + method.getName();
 
 						// Process parameters
-						String parameters = " (";
+						String parameters = "";
 						Class<?>[] parameterTypes = method.getParameterTypes();
+						if (parameterTypes.length > 0) {
+							parameters += " ";
+						}
+						parameters += "(";
 						for (int i = 0; i < parameterTypes.length; i++) {
-							if (parameters != " (") {
+							if (i != 0) {
 								parameters += ", ";
+							} else {
+								parameters += " ";
 							}
 
 							parameters += parameterTypes[i].getSimpleName().toString() + " " + String.valueOf((char) (i + 97)) + parameterTypes[i].getSimpleName().toString();
+
+							if (i == (parameterTypes.length - 1)) {
+								parameters += " ";
+							}
 						}
 						parameters += ")";
 						methodSignature += parameters;
