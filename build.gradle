@@ -16,7 +16,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'com.iainconnor'
-version = '1.0.0-SNAPSHOT'
+version = '1.0.0'
 project.ext.description = "The power of Traits through Annotations."
 
 sourceCompatibility = 1.5
