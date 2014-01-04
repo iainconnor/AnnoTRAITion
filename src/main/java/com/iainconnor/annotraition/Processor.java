@@ -1,9 +1,7 @@
 package com.iainconnor.annotraition;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.*;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
@@ -21,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 @SupportedAnnotationTypes ("com.iainconnor.annotraition.*")
+@SupportedSourceVersion (SourceVersion.RELEASE_6)
 public class Processor extends AbstractProcessor {
 	protected static final String TRAIT_NAME_PREFIX = "_";
 	protected static final String TRAIT_NAME_POSTFIX = "Traited";
