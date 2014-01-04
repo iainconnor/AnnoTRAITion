@@ -77,6 +77,34 @@ public class Processor extends AbstractProcessor {
 		return (TypeElement) types.asElement(typeMirror);
 	}
 
+	protected String processParameters ( List<? extends VariableElement> parameterElements, boolean needTypes, ProcessingEnvironment processingEnvironment ) {
+		String parameters = "";
+		if (parameterElements.size() > 0) {
+			parameters += " ";
+		}
+		parameters += "(";
+		for (int i = 0; i < parameterElements.size(); i++) {
+			if (i != 0) {
+				parameters += ", ";
+			} else {
+				parameters += " ";
+			}
+
+			VariableElement parameterElement = parameterElements.get(i);
+			if (needTypes) {
+				parameters += getElementForMirror(parameterElement.asType(), processingEnvironment).getSimpleName().toString() + " ";
+			}
+			parameters += parameterElement.getSimpleName().toString();
+
+			if (i == (parameterElements.size() - 1)) {
+				parameters += " ";
+			}
+		}
+		parameters += ")";
+
+		return parameters;
+	}
+
 	protected void generateClass ( Map<String, TraitInformation> traits, ArrayList<Element> traitElements, ProcessingEnvironment processingEnvironment ) {
 		for (TraitInformation trait : traits.values()) {
 			try {
@@ -166,27 +194,7 @@ public class Processor extends AbstractProcessor {
 								methodSignature += " " + methodName;
 
 								// Process parameters
-								String parameters = "";
-								List<? extends VariableElement> parameterElements = ((ExecutableElement) traitSubElement).getParameters();
-								if (parameterElements.size() > 0) {
-									parameters += " ";
-								}
-								parameters += "(";
-								for (int i = 0; i < parameterElements.size(); i++) {
-									if (i != 0) {
-										parameters += ", ";
-									} else {
-										parameters += " ";
-									}
-
-									VariableElement parameterElement = parameterElements.get(i);
-									parameters += getElementForMirror(parameterElement.asType(), processingEnvironment).getSimpleName().toString() + " " + parameterElement.getSimpleName().toString();
-
-									if (i == (parameterElements.size() - 1)) {
-										parameters += " ";
-									}
-								}
-								parameters += ")";
+								String parameters = processParameters(((ExecutableElement) traitSubElement).getParameters(), true, processingEnvironment);
 								methodSignature += parameters;
 
 								// Process exceptions
@@ -213,7 +221,9 @@ public class Processor extends AbstractProcessor {
 								}
 
 								writer.append("this." + variableName + "." + methodName);
-								writer.append(parameters + ";");
+
+								String passthroughParameters = processParameters(((ExecutableElement) traitSubElement).getParameters(), false, processingEnvironment);
+								writer.append(passthroughParameters + ";");
 
 								writer.newLine();
 								writer.append("\t}");
