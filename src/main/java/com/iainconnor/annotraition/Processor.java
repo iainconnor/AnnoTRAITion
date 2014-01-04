@@ -9,10 +9,7 @@ import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @SupportedAnnotationTypes ("com.iainconnor.annotraition.*")
 @SupportedSourceVersion (SourceVersion.RELEASE_6)
@@ -148,8 +145,12 @@ public class Processor extends AbstractProcessor {
 								String methodSignature = "";
 
 								// Process modifiers
-								for (Modifier modifier : ((ExecutableElement) traitSubElement).getModifiers()) {
-									methodSignature += modifier.toString() + " ";
+								Modifier[] modifiers = ((ExecutableElement) traitSubElement).getModifiers().toArray(new Modifier[((ExecutableElement) traitSubElement).getModifiers().size()]);
+								for (int i = 0; i <= modifiers.length; i++) {
+									if (i != 0) {
+										methodSignature += " ";
+									}
+									methodSignature += modifiers[i].toString();
 								}
 
 								// Process return type
@@ -157,6 +158,31 @@ public class Processor extends AbstractProcessor {
 
 								// Process name
 								methodSignature += " " + ((ExecutableElement) traitSubElement).getSimpleName();
+
+								// Process parameters
+								String parameters = "";
+								List<? extends VariableElement> parameterElements = ((ExecutableElement) traitSubElement).getParameters();
+								if (parameterElements.size() > 0) {
+									parameters += " ";
+								}
+								parameters += "(";
+								for (int i = 0; i < parameterElements.size(); i++) {
+									if (i != 0) {
+										parameters += ", ";
+									} else {
+										parameters += " ";
+									}
+
+									parameters += parameterElements.toArray(new VariableElement[parameterElements.size()])[i].getSimpleName().toString();
+
+									//parameters += parameterElements[i].getSimpleName().toString() + " " + String.valueOf((char) (i + 97)) + parameterTypes[i].getSimpleName().toString();
+
+									if (i == (parameterElements.size() - 1)) {
+										parameters += " ";
+									}
+								}
+								parameters += ")";
+								methodSignature += parameters;
 
 								writer.append(methodSignature);
 							}
