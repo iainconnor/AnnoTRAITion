@@ -122,6 +122,7 @@ public class Processor extends AbstractProcessor {
 					// as they exist at different levels of compilation at this point.
 					Element traitElement = null;
 					for (Element possibleTraitElement : traitElements) {
+						writer.append(possibleTraitElement.getClass().getName().toString() + " == " + traitClassQualifiedName + " / ");
 						if (possibleTraitElement.getClass().getName().toString().equals(traitClassQualifiedName)) {
 							traitElement = possibleTraitElement;
 							break;
@@ -135,11 +136,13 @@ public class Processor extends AbstractProcessor {
 					writer.append("\tprotected " + traitClassName + " " + variableName + ";");
 					writer.newLine();
 
-					for (Element traitSubElement : traitElement.getEnclosedElements()) {
-						writer.append(traitSubElement.getKind().toString());
-						writer.append(" - ");
-						writer.append(traitSubElement.getSimpleName().toString());
-						writer.newLine();
+					if (traitElement != null) {
+						for (Element traitSubElement : traitElement.getEnclosedElements()) {
+							writer.append(traitSubElement.getKind().toString());
+							writer.append(" - ");
+							writer.append(traitSubElement.getSimpleName().toString());
+							writer.newLine();
+						}
 					}
 
 					/*
