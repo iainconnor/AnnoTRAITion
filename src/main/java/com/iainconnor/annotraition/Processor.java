@@ -72,6 +72,11 @@ public class Processor extends AbstractProcessor {
 		return true;
 	}
 
+	protected TypeElement getElementForMirror ( TypeMirror typeMirror, ProcessingEnvironment processingEnvironment ) {
+		Types types = processingEnvironment.getTypeUtils();
+		return (TypeElement) types.asElement(typeMirror);
+	}
+
 	protected void generateClass ( Map<String, TraitInformation> traits, ArrayList<Element> traitElements, ProcessingEnvironment processingEnvironment ) {
 		for (TraitInformation trait : traits.values()) {
 			try {
@@ -104,9 +109,7 @@ public class Processor extends AbstractProcessor {
 						traitClassQualifiedName = traitClass.getName().toString();
 					} catch (MirroredTypeException exception) {
 						// This try/catch will always fall into the catch
-						TypeMirror typeMirror = exception.getTypeMirror();
-						Types types = processingEnvironment.getTypeUtils();
-						TypeElement typeElement = (TypeElement) types.asElement(typeMirror);
+						TypeElement typeElement = getElementForMirror(exception.getTypeMirror(), processingEnvironment);
 						traitClassQualifiedName = typeElement.getQualifiedName().toString();
 						traitClassName = typeElement.getSimpleName().toString();
 					}
@@ -122,8 +125,6 @@ public class Processor extends AbstractProcessor {
 					// Note: You need to compare String values rather than the Classes themselves,
 					// as they exist at different levels of compilation at this point.
 					Element traitElement = null;
-					writer.append("HELLO");
-					writer.append(traitElements.size() + "");
 					for (Element possibleTraitElement : traitElements) {
 						writer.append(possibleTraitElement.toString());
 						if (possibleTraitElement.getKind() == ElementKind.CLASS && possibleTraitElement.toString().equals(traitClassQualifiedName)) {
@@ -176,9 +177,7 @@ public class Processor extends AbstractProcessor {
 									}
 
 									VariableElement parameterElement = parameterElements.get(i);
-									parameters += parameterElement.asType().toString() + " " + parameterElement.getSimpleName().toString();
-
-									//parameters += parameterElements[i].getSimpleName().toString() + " " + String.valueOf((char) (i + 97)) + parameterTypes[i].getSimpleName().toString();
+									parameters += getElementForMirror(parameterElement.asType(), processingEnvironment).getSimpleName().toString() + " " + parameterElement.getSimpleName().toString();
 
 									if (i == (parameterElements.size() - 1)) {
 										parameters += " ";
