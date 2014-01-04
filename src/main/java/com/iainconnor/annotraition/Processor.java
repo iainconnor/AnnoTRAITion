@@ -135,6 +135,13 @@ public class Processor extends AbstractProcessor {
 					writer.append("\tprotected " + traitClassName + " " + variableName + ";");
 					writer.newLine();
 
+					for (Element traitSubElement : traitElement.getEnclosedElements()) {
+						writer.append(traitSubElement.getKind().toString());
+						writer.append(" - ");
+						writer.append(traitSubElement.getSimpleName().toString());
+						writer.newLine();
+					}
+
 					/*
 					for (Method method : traitClass.getDeclaredMethods()) {
 						writer.newLine();
