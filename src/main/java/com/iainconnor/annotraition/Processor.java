@@ -114,6 +114,7 @@ public class Processor extends AbstractProcessor {
 						traitClassName = typeElement.getSimpleName().toString();
 					}
 
+					// Add private variable for passthrough to Trait
 					String variableName = use.localVariable();
 					if (variableName.equals("")) {
 						variableName = lowerCaseFirst(traitClassName);
@@ -157,10 +158,12 @@ public class Processor extends AbstractProcessor {
 								}
 
 								// Process return type
-								methodSignature += " " + ((ExecutableElement) traitSubElement).getReturnType().toString();
+								String returnType = ((ExecutableElement) traitSubElement).getReturnType().toString();
+								methodSignature += " " + returnType;
 
 								// Process name
-								methodSignature += " " + ((ExecutableElement) traitSubElement).getSimpleName();
+								String methodName = ((ExecutableElement) traitSubElement).getSimpleName().toString();
+								methodSignature += " " + methodName;
 
 								// Process parameters
 								String parameters = "";
@@ -186,94 +189,38 @@ public class Processor extends AbstractProcessor {
 								parameters += ")";
 								methodSignature += parameters;
 
-								writer.append(methodSignature);
+								// Process exceptions
+								String exceptions = "";
+								List<? extends TypeMirror> exceptionElements = ((ExecutableElement) traitSubElement).getThrownTypes();
+								for (int i = 0; i < exceptionElements.size(); i++) {
+									if (i == 0) {
+										exceptions += " throws ";
+									} else {
+										exceptions += ", ";
+									}
+
+									TypeMirror exceptionElement = exceptionElements.get(i);
+									exceptions += getElementForMirror(exceptionElement, processingEnvironment).getSimpleName().toString();
+								}
+								methodSignature += exceptions;
+
+								// Process method signature, which is a passthrough call to local instance of Trait
+								writer.append("\t" + methodSignature + " {");
+								writer.newLine();
+								writer.append("\t\t");
+								if (!returnType.contains("void")) {
+									writer.append("return ");
+								}
+
+								writer.append("this." + variableName + "." + methodName);
+								writer.append(parameters + ";");
+
+								writer.newLine();
+								writer.append("\t}");
+								writer.newLine();
 							}
 						}
 					}
-
-					/*
-					for (Method method : traitClass.getDeclaredMethods()) {
-						writer.newLine();
-						writer.append("\t/**");
-						writer.newLine();
-						writer.append("\t * ");
-						writer.append("Passes through to `" + traitClassName + "." + method.getName().toString() + "`.");
-						writer.newLine();
-						writer.append("\t /");
-						writer.newLine();
-
-						String methodSignature = "";
-
-						// Process modifiers
-						methodSignature += Modifier.toString(method.getModifiers());
-
-						// Process return type
-						methodSignature += " " + method.getReturnType().getSimpleName().toString();
-
-						// Process name
-						methodSignature += " " + method.getName();
-
-						// Process parameters
-						String parameters = "";
-						Class<?>[] parameterTypes = method.getParameterTypes();
-						if (parameterTypes.length > 0) {
-							parameters += " ";
-						}
-						parameters += "(";
-						for (int i = 0; i < parameterTypes.length; i++) {
-							if (i != 0) {
-								parameters += ", ";
-							} else {
-								parameters += " ";
-							}
-
-							parameters += parameterTypes[i].getSimpleName().toString() + " " + String.valueOf((char) (i + 97)) + parameterTypes[i].getSimpleName().toString();
-
-							if (i == (parameterTypes.length - 1)) {
-								parameters += " ";
-							}
-						}
-						parameters += ")";
-						methodSignature += parameters;
-
-						// Process exceptions
-						String exceptions = "";
-						Class<?>[] exceptionTypes = method.getExceptionTypes();
-						for (Class exceptionType : exceptionTypes) {
-							if (exceptions == "") {
-								exceptions += " throws ";
-							} else {
-								exceptions += ", ";
-							}
-
-							exceptions += exceptionType.getSimpleName().toString();
-						}
-						methodSignature += exceptions;
-
-						writer.append("\t" + methodSignature + " {");
-						writer.newLine();
-
-						writer.append("\t\t");
-						if (!method.getReturnType().getSimpleName().toString().contains("void")) {
-							writer.append("return ");
-						}
-
-						writer.append("this." + variableName + "." + method.getName());
-
-						writer.append("(");
-						for (int i = 0; i < parameterTypes.length; i++) {
-							if (i != 0) {
-								writer.append(", ");
-							}
-							writer.append(String.valueOf((char) (i + 97)) + parameterTypes[i].getSimpleName().toString());
-						}
-						writer.append(");");
-
-						writer.newLine();
-						writer.append("\t}");
-						writer.newLine();
-					}
-					*/
 				}
 
 				writer.append("}");
