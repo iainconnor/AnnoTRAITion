@@ -3,23 +3,17 @@ buildscript {
 		repositories {
 			maven {
 				mavenCentral()
-				url "https://oss.sonatype.org/content/repositories/snapshots/"
 			}
 		}
-
-		classpath 'com.jimdo.gradle:gradle-apt-plugin:0.2-SNAPSHOT'
 	}
 }
 
-apply plugin: 'apt'
 apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'com.iainconnor'
-version = '1.0.0'
+version = '1.0.2-SNAPSHOT'
 project.ext.description = "The power of Traits through Annotations."
-
-sourceCompatibility = 1.5
 
 repositories {
 	mavenCentral()
