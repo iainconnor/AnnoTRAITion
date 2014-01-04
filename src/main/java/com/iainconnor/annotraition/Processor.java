@@ -103,15 +103,18 @@ public class Processor extends AbstractProcessor {
 					// annotation, but we can if we catch it in an exception.
 					// See http://blog.retep.org/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
 					String traitClassName = null;
+					String traitClassQualifiedName = null;
 					try {
 						Class traitClass = use.value();
-						traitClassName = traitClass.getName().toString();
+						traitClassName = traitClass.getSimpleName().toString();
+						traitClassQualifiedName = traitClass.getName().toString();
 					} catch (MirroredTypeException exception) {
 						// This try/catch will always fall into the catch
 						TypeMirror typeMirror = exception.getTypeMirror();
 						Types types = processingEnvironment.getTypeUtils();
 						TypeElement typeElement = (TypeElement) types.asElement(typeMirror);
-						traitClassName = typeElement.getQualifiedName().toString();
+						traitClassQualifiedName = typeElement.getQualifiedName().toString();
+						traitClassName = typeElement.getSimpleName().toString();
 					}
 
 					// Look through the list of elements annotated with @Trait until we find a matching class
@@ -119,7 +122,7 @@ public class Processor extends AbstractProcessor {
 					// as they exist at different levels of compilation at this point.
 					Element traitElement = null;
 					for (Element possibleTraitElement : traitElements) {
-						if (possibleTraitElement.getClass().getName().toString().equals(traitClassName)) {
+						if (possibleTraitElement.getClass().getName().toString().equals(traitClassQualifiedName)) {
 							traitElement = possibleTraitElement;
 							break;
 						}
