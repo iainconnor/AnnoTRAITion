@@ -5,7 +5,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
@@ -28,7 +27,6 @@ public class Processor extends AbstractProcessor {
 		}
 
 		ArrayList<Element> elements = new ArrayList<Element>();
-
 		for (Element element : roundEnvironment.getElementsAnnotatedWith(Uses.class)) {
 			elements.add(element);
 		}
@@ -124,7 +122,10 @@ public class Processor extends AbstractProcessor {
 					// Note: You need to compare String values rather than the Classes themselves,
 					// as they exist at different levels of compilation at this point.
 					Element traitElement = null;
+					writer.append("HELLO");
+					writer.append(traitElements.size() + "");
 					for (Element possibleTraitElement : traitElements) {
+						writer.append(possibleTraitElement.toString());
 						if (possibleTraitElement.getKind() == ElementKind.CLASS && possibleTraitElement.toString().equals(traitClassQualifiedName)) {
 							traitElement = possibleTraitElement;
 							break;
@@ -175,7 +176,9 @@ public class Processor extends AbstractProcessor {
 									}
 
 									VariableElement parameterElement = parameterElements.get(i);
-									parameters += ((TypeVariable) parameterElement).asElement().getSimpleName().toString() + " " + parameterElement.getSimpleName().toString();
+									parameters += parameterElement.asType().toString() + " " + parameterElement.getSimpleName().toString();
+
+									//parameters += parameterElements[i].getSimpleName().toString() + " " + String.valueOf((char) (i + 97)) + parameterTypes[i].getSimpleName().toString();
 
 									if (i == (parameterElements.size() - 1)) {
 										parameters += " ";
