@@ -351,9 +351,9 @@ public class Processor extends AbstractProcessor {
 								writer.append("\t\t");
 
 								if (traitSubElement.getKind() == ElementKind.CONSTRUCTOR) {
-									writer.append("this." + variableName + " = new " + traitClassName + " (this);");
-									writer.newLine();
 									writer.append("super" + getParameters((ExecutableElement) traitSubElement, false) + ";");
+									writer.append("\t\tthis." + variableName + " = new " + traitClassName + " (this);");
+									writer.newLine();
 								} else {
 									if (!returnType.contains("void")) {
 										writer.append("return ");
