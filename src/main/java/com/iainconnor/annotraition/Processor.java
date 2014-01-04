@@ -122,8 +122,11 @@ public class Processor extends AbstractProcessor {
 					// as they exist at different levels of compilation at this point.
 					Element traitElement = null;
 					for (Element possibleTraitElement : traitElements) {
-						writer.append(possibleTraitElement.getClass().getName().toString() + " == " + traitClassQualifiedName + " / ");
-						if (possibleTraitElement.getClass().getName().toString().equals(traitClassQualifiedName)) {
+						if (possibleTraitElement.getKind() == ElementKind.CLASS) {
+							String possibleTraitClassName = possibleTraitElement.toString();
+						}
+						writer.append(("dd" + possibleTraitElement.toString()));
+						if (possibleTraitElement.toString().equals(traitClassQualifiedName)) {
 							traitElement = possibleTraitElement;
 							break;
 						}
