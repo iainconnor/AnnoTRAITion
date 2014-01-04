@@ -2,9 +2,7 @@ package com.iainconnor.annotraition;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
@@ -117,21 +115,6 @@ public class Processor extends AbstractProcessor {
 						traitClassName = typeElement.getSimpleName().toString();
 					}
 
-					// Look through the list of elements annotated with @Trait until we find a matching class
-					// Note: You need to compare String values rather than the Classes themselves,
-					// as they exist at different levels of compilation at this point.
-					Element traitElement = null;
-					for (Element possibleTraitElement : traitElements) {
-						if (possibleTraitElement.getKind() == ElementKind.CLASS) {
-							String possibleTraitClassName = possibleTraitElement.toString();
-						}
-						writer.append(("dd" + possibleTraitElement.toString()));
-						if (possibleTraitElement.toString().equals(traitClassQualifiedName)) {
-							traitElement = possibleTraitElement;
-							break;
-						}
-					}
-
 					String variableName = use.localVariable();
 					if (variableName.equals("")) {
 						variableName = lowerCaseFirst(traitClassName);
@@ -139,12 +122,44 @@ public class Processor extends AbstractProcessor {
 					writer.append("\tprotected " + traitClassName + " " + variableName + ";");
 					writer.newLine();
 
+					// Look through the list of elements annotated with @Trait until we find a matching class
+					// Note: You need to compare String values rather than the Classes themselves,
+					// as they exist at different levels of compilation at this point.
+					Element traitElement = null;
+					for (Element possibleTraitElement : traitElements) {
+						if (possibleTraitElement.getKind() == ElementKind.CLASS && possibleTraitElement.toString().equals(traitClassQualifiedName)) {
+							traitElement = possibleTraitElement;
+							break;
+						}
+					}
+
 					if (traitElement != null) {
 						for (Element traitSubElement : traitElement.getEnclosedElements()) {
-							writer.append(traitSubElement.getKind().toString());
-							writer.append(" - ");
-							writer.append(traitSubElement.getSimpleName().toString());
-							writer.newLine();
+							if (traitSubElement.getKind() == ElementKind.CONSTRUCTOR || traitSubElement.getKind() == ElementKind.METHOD) {
+								writer.newLine();
+								writer.append("\t/**");
+								writer.newLine();
+								writer.append("\t * ");
+								writer.append("Passes through to `" + traitClassName + "." + ((ExecutableElement) traitSubElement).getSimpleName() + "`.");
+								writer.newLine();
+								writer.append("\t */");
+								writer.newLine();
+
+								String methodSignature = "";
+
+								// Process modifiers
+								for (Modifier modifier : ((ExecutableElement) traitSubElement).getModifiers()) {
+									methodSignature += modifier.toString() + " ";
+								}
+
+								// Process return type
+								methodSignature += " " + ((ExecutableElement) traitSubElement).getReturnType().toString();
+
+								// Process name
+								methodSignature += " " + ((ExecutableElement) traitSubElement).getSimpleName();
+
+								writer.append(methodSignature);
+							}
 						}
 					}
 
