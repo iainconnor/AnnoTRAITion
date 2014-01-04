@@ -146,7 +146,7 @@ public class Processor extends AbstractProcessor {
 
 								// Process modifiers
 								Modifier[] modifiers = ((ExecutableElement) traitSubElement).getModifiers().toArray(new Modifier[((ExecutableElement) traitSubElement).getModifiers().size()]);
-								for (int i = 0; i <= modifiers.length; i++) {
+								for (int i = 0; i < modifiers.length; i++) {
 									if (i != 0) {
 										methodSignature += " ";
 									}
