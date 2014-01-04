@@ -5,6 +5,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
@@ -173,9 +174,8 @@ public class Processor extends AbstractProcessor {
 										parameters += " ";
 									}
 
-									parameters += parameterElements.toArray(new VariableElement[parameterElements.size()])[i].getSimpleName().toString();
-
-									//parameters += parameterElements[i].getSimpleName().toString() + " " + String.valueOf((char) (i + 97)) + parameterTypes[i].getSimpleName().toString();
+									VariableElement parameterElement = parameterElements.get(i);
+									parameters += ((TypeVariable) parameterElement).asElement().getSimpleName().toString() + " " + parameterElement.getSimpleName().toString();
 
 									if (i == (parameterElements.size() - 1)) {
 										parameters += " ";
