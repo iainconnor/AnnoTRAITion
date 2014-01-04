@@ -11,8 +11,6 @@ import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +25,11 @@ public class Processor extends AbstractProcessor {
 	@Override
 	public boolean process ( Set<? extends TypeElement> typeElements, RoundEnvironment roundEnvironment ) {
 		HashMap<String, TraitInformation> traits = new HashMap<String, TraitInformation>();
+
+		ArrayList<Element> traitElements = new ArrayList<Element>();
+		for (Element element : roundEnvironment.getElementsAnnotatedWith(Trait.class)) {
+			traitElements.add(element);
+		}
 
 		ArrayList<Element> elements = new ArrayList<Element>();
 
@@ -70,12 +73,12 @@ public class Processor extends AbstractProcessor {
 			}
 		}
 
-		generateClass(traits, processingEnv);
+		generateClass(traits, traitElements, processingEnv);
 
 		return true;
 	}
 
-	protected void generateClass ( Map<String, TraitInformation> traits, ProcessingEnvironment processingEnvironment ) {
+	protected void generateClass ( Map<String, TraitInformation> traits, ArrayList<Element> traitElements, ProcessingEnvironment processingEnvironment ) {
 		for (TraitInformation trait : traits.values()) {
 			try {
 				String traitedClassName = TRAIT_NAME_PREFIX + trait.getTraitedClass() + TRAIT_NAME_POSTFIX;
@@ -96,20 +99,31 @@ public class Processor extends AbstractProcessor {
 				writer.newLine();
 
 				for (Use use : trait.getTraits()) {
-					Class traitClass = null;
+					// This is a bit of insanity to work around the fact that we can't get a Class directly from an
+					// annotation, but we can if we catch it in an exception.
+					// See http://blog.retep.org/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
+					String traitClassName = null;
 					try {
-						traitClass = use.value();
+						Class traitClass = use.value();
+						traitClassName = traitClass.getName().toString();
 					} catch (MirroredTypeException exception) {
+						// This try/catch will always fall into the catch
 						TypeMirror typeMirror = exception.getTypeMirror();
 						Types types = processingEnvironment.getTypeUtils();
 						TypeElement typeElement = (TypeElement) types.asElement(typeMirror);
-						try {
-							traitClass = Class.forName(typeElement.getQualifiedName().toString());
-						} catch (ClassNotFoundException e) {
-							e.printStackTrace();
+						traitClassName = typeElement.getQualifiedName().toString();
+					}
+
+					// Look through the list of elements annotated with @Trait until we find a matching class
+					// Note: You need to compare String values rather than the Classes themselves,
+					// as they exist at different levels of compilation at this point.
+					Element traitElement = null;
+					for (Element possibleTraitElement : traitElements) {
+						if (possibleTraitElement.getClass().getName().toString().equals(traitClassName)) {
+							traitElement = possibleTraitElement;
+							break;
 						}
 					}
-					String traitClassName = traitClass.getSimpleName().toString();
 
 					String variableName = use.localVariable();
 					if (variableName.equals("")) {
@@ -118,6 +132,7 @@ public class Processor extends AbstractProcessor {
 					writer.append("\tprotected " + traitClassName + " " + variableName + ";");
 					writer.newLine();
 
+					/*
 					for (Method method : traitClass.getDeclaredMethods()) {
 						writer.newLine();
 						writer.append("\t/**");
@@ -125,7 +140,7 @@ public class Processor extends AbstractProcessor {
 						writer.append("\t * ");
 						writer.append("Passes through to `" + traitClassName + "." + method.getName().toString() + "`.");
 						writer.newLine();
-						writer.append("\t */");
+						writer.append("\t /");
 						writer.newLine();
 
 						String methodSignature = "";
@@ -199,6 +214,7 @@ public class Processor extends AbstractProcessor {
 						writer.append("\t}");
 						writer.newLine();
 					}
+					*/
 				}
 
 				writer.append("}");
