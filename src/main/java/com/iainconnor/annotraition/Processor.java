@@ -220,9 +220,13 @@ public class Processor extends AbstractProcessor {
 	 *
 	 * @return
 	 */
-	protected String getMethodName ( ExecutableElement method ) {
+	protected String getMethodName ( ExecutableElement method, String traitedClassName ) {
+		String className = method.getSimpleName().toString();
+		if (className.equals("<init>")) {
+			className = traitedClassName;
+		}
 
-		return method.getSimpleName().toString();
+		return className;
 	}
 
 	/**
@@ -306,13 +310,13 @@ public class Processor extends AbstractProcessor {
 
 					// Add private variable for passthrough to Trait
 					String variableName = getPassthroughVariableName(use, traitClassName);
-					writer.append("\tprotected " + traitClassName + " " + variableName + " = new " + traitClassName + " (this);");
+					writer.append("\tprotected " + traitClassName + " " + variableName + ";");
 					writer.newLine();
 
 					Element traitElement = getMatchingTraitElement(traitElements, traitClassQualifiedName);
 					if (traitElement != null) {
 						for (Element traitSubElement : traitElement.getEnclosedElements()) {
-							if ((traitSubElement.getKind() == ElementKind.CONSTRUCTOR && !getMethodName((ExecutableElement) traitSubElement).equals("<init>")) || traitSubElement.getKind() == ElementKind.METHOD) {
+							if (traitSubElement.getKind() == ElementKind.CONSTRUCTOR || traitSubElement.getKind() == ElementKind.METHOD) {
 								writer.newLine();
 								writer.append("\t/**");
 								writer.newLine();
@@ -332,7 +336,7 @@ public class Processor extends AbstractProcessor {
 								methodSignature += " " + returnType;
 
 								// Process name
-								String methodName = getMethodName((ExecutableElement) traitSubElement);
+								String methodName = getMethodName((ExecutableElement) traitSubElement, traitClassName);
 								methodSignature += " " + methodName;
 
 								// Process parameters
@@ -345,14 +349,18 @@ public class Processor extends AbstractProcessor {
 								writer.append("\t" + methodSignature + " {");
 								writer.newLine();
 								writer.append("\t\t");
-								if (!returnType.contains("void")) {
-									writer.append("return ");
+
+								if (traitSubElement.getKind() == ElementKind.CONSTRUCTOR) {
+									writer.append("this." + variableName + " = new " + traitClassName + " (this);");
+									writer.newLine();
+									writer.append("super" + getParameters((ExecutableElement) traitSubElement, false) + ";");
+								} else {
+									if (!returnType.contains("void")) {
+										writer.append("return ");
+									}
+									writer.append("this." + variableName + "." + methodName);
+									writer.append(getParameters((ExecutableElement) traitSubElement, false) + ";");
 								}
-
-								writer.append("this." + variableName + "." + methodName);
-
-								String passthroughParameters = getParameters((ExecutableElement) traitSubElement, false);
-								writer.append(passthroughParameters + ";");
 
 								writer.newLine();
 								writer.append("\t}");
