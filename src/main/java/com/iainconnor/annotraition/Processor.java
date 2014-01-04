@@ -336,7 +336,7 @@ public class Processor extends AbstractProcessor {
 								methodSignature += " " + returnType;
 
 								// Process name
-								String methodName = getMethodName((ExecutableElement) traitSubElement, traitClassName);
+								String methodName = getMethodName((ExecutableElement) traitSubElement, traitedClassName);
 								methodSignature += " " + methodName;
 
 								// Process parameters
@@ -352,6 +352,7 @@ public class Processor extends AbstractProcessor {
 
 								if (traitSubElement.getKind() == ElementKind.CONSTRUCTOR) {
 									writer.append("super" + getParameters((ExecutableElement) traitSubElement, false) + ";");
+									writer.newLine();
 									writer.append("\t\tthis." + variableName + " = new " + traitClassName + " (this);");
 									writer.newLine();
 								} else {
