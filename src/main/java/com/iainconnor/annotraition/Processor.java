@@ -279,7 +279,7 @@ public class Processor extends AbstractProcessor {
 		methodSignature += "Passes through to `" + traitClassName + "." + method.getSimpleName() + "`.";
 		methodSignature += "\n";
 		methodSignature += "\t */";
-		methodSignature += "\n";
+		methodSignature += "\n\t";
 
 		// Process modifiers
 		methodSignature += getModifiers(method);
@@ -298,7 +298,7 @@ public class Processor extends AbstractProcessor {
 		methodSignature += getExceptions(method);
 
 		// Process method signature, which is a passthrough call to local instance of Trait
-		methodSignature += "\t" + methodSignature + " {";
+		methodSignature += " {";
 		methodSignature += "\n";
 		methodSignature += "\t\t";
 
