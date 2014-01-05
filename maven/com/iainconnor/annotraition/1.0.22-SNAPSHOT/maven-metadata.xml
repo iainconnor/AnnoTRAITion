@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+	<groupId>com.iainconnor</groupId>
+	<artifactId>annotraition</artifactId>
+	<version>1.0.22-SNAPSHOT</version>
+	<versioning>
+		<snapshot>
+			<timestamp>20140105.003357</timestamp>
+			<buildNumber>1</buildNumber>
+		</snapshot>
+		<lastUpdated>20140105003357</lastUpdated>
+	</versioning>
+</metadata>

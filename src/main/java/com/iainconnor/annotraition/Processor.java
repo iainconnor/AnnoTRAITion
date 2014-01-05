@@ -237,8 +237,12 @@ public class Processor extends AbstractProcessor {
 	 * @return
 	 */
 	protected String getReturnType ( ExecutableElement method ) {
+		String returnType = method.getReturnType().toString();
+		if (method.getKind() == ElementKind.CONSTRUCTOR) {
+			returnType = "";
+		}
 
-		return method.getReturnType().toString();
+		return returnType;
 	}
 
 	/**
@@ -263,6 +267,58 @@ public class Processor extends AbstractProcessor {
 		}
 
 		return exceptions;
+	}
+
+	protected String getMethod ( ExecutableElement method, String traitClassName, String traitedClassName, String variableName ) {
+		String methodSignature = "";
+
+		methodSignature += "\n";
+		methodSignature += "\t/**";
+		methodSignature += "\n";
+		methodSignature += "\t * ";
+		methodSignature += "Passes through to `" + traitClassName + "." + method.getSimpleName() + "`.";
+		methodSignature += "\n";
+		methodSignature += "\t */";
+		methodSignature += "\n";
+
+		// Process modifiers
+		methodSignature += getModifiers(method);
+
+		// Process return type
+		methodSignature += " " + getReturnType(method);
+
+		// Process name
+		String methodName = getMethodName(method, traitedClassName);
+		methodSignature += " " + methodName;
+
+		// Process parameters
+		methodSignature += getParameters(method, true);
+
+		// Process exceptions
+		methodSignature += getExceptions(method);
+
+		// Process method signature, which is a passthrough call to local instance of Trait
+		methodSignature += "\t" + methodSignature + " {";
+		methodSignature += "\n";
+		methodSignature += "\t\t";
+
+		if (method.getKind() == ElementKind.CONSTRUCTOR) {
+			methodSignature += "super" + getParameters(method, false) + ";";
+			methodSignature += "\n";
+			methodSignature += "\t\tthis." + variableName + " = new " + traitClassName + " (this);";
+		} else {
+			if (!getReturnType(method).contains("void")) {
+				methodSignature += "return ";
+			}
+			methodSignature += "this." + variableName + "." + methodName;
+			methodSignature += getParameters(method, false) + ";";
+		}
+
+		methodSignature += "\n";
+		methodSignature += "\t}";
+		methodSignature += "\n";
+
+		return methodSignature;
 	}
 
 	/**
@@ -313,59 +369,19 @@ public class Processor extends AbstractProcessor {
 					writer.append("\tprotected " + traitClassName + " " + variableName + ";");
 					writer.newLine();
 
+					// Process the constuctors from the traited class
+					for (Element traitedSubElement : trait.originatingElement.getEnclosedElements()) {
+						if (traitedSubElement.getKind() == ElementKind.CONSTRUCTOR) {
+							writer.append(getMethod((ExecutableElement) traitedSubElement, traitClassName, traitedClassName, variableName));
+						}
+					}
+
+					// Process the methods from the trait class
 					Element traitElement = getMatchingTraitElement(traitElements, traitClassQualifiedName);
 					if (traitElement != null) {
 						for (Element traitSubElement : traitElement.getEnclosedElements()) {
-							if (traitSubElement.getKind() == ElementKind.CONSTRUCTOR || traitSubElement.getKind() == ElementKind.METHOD) {
-								writer.newLine();
-								writer.append("\t/**");
-								writer.newLine();
-								writer.append("\t * ");
-								writer.append("Passes through to `" + traitClassName + "." + ((ExecutableElement) traitSubElement).getSimpleName() + "`.");
-								writer.newLine();
-								writer.append("\t */");
-								writer.newLine();
-
-								String methodSignature = "";
-
-								// Process modifiers
-								methodSignature += getModifiers((ExecutableElement) traitSubElement);
-
-								// Process return type
-								String returnType = getReturnType((ExecutableElement) traitSubElement);
-								methodSignature += " " + returnType;
-
-								// Process name
-								String methodName = getMethodName((ExecutableElement) traitSubElement, traitedClassName);
-								methodSignature += " " + methodName;
-
-								// Process parameters
-								methodSignature += getParameters((ExecutableElement) traitSubElement, true);
-
-								// Process exceptions
-								methodSignature += getExceptions((ExecutableElement) traitSubElement);
-
-								// Process method signature, which is a passthrough call to local instance of Trait
-								writer.append("\t" + methodSignature + " {");
-								writer.newLine();
-								writer.append("\t\t");
-
-								if (traitSubElement.getKind() == ElementKind.CONSTRUCTOR) {
-									writer.append("super" + getParameters((ExecutableElement) traitSubElement, false) + ";");
-									writer.newLine();
-									writer.append("\t\tthis." + variableName + " = new " + traitClassName + " (this);");
-									writer.newLine();
-								} else {
-									if (!returnType.contains("void")) {
-										writer.append("return ");
-									}
-									writer.append("this." + variableName + "." + methodName);
-									writer.append(getParameters((ExecutableElement) traitSubElement, false) + ";");
-								}
-
-								writer.newLine();
-								writer.append("\t}");
-								writer.newLine();
+							if (traitSubElement.getKind() == ElementKind.METHOD) {
+								writer.append(getMethod((ExecutableElement) traitSubElement, traitClassName, traitedClassName, variableName));
 							}
 						}
 					}
