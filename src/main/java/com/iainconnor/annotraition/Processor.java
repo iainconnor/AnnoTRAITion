@@ -72,7 +72,7 @@ public class Processor extends AbstractProcessor {
 			}
 		}
 
-		generateClass(traits, traitElements);
+		generateClasses(traits, traitElements);
 
 		return true;
 	}
@@ -327,12 +327,13 @@ public class Processor extends AbstractProcessor {
 	 * @param traits
 	 * @param traitElements
 	 */
-	protected void generateClass ( Map<String, TraitInformation> traits, ArrayList<Element> traitElements ) {
+	protected void generateClasses ( Map<String, TraitInformation> traits, ArrayList<Element> traitElements ) {
 		for (TraitInformation trait : traits.values()) {
 			try {
 				String traitedClassName = getTraitedClassName(trait);
+				String traitedClassNameQualified = ((trait.getTraitedPackage() != null && !trait.getTraitedPackage().equals("")) ? (trait.getTraitedPackage() + ".") : "") + traitedClassName;
 
-				JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(traitedClassName, trait.getOriginatingElement());
+				JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(traitedClassNameQualified, trait.getOriginatingElement());
 				BufferedWriter writer = new BufferedWriter(fileObject.openWriter());
 
 				writer.append("package " + trait.getTraitedPackage() + ";");
