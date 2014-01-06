@@ -352,7 +352,11 @@ public class Processor extends AbstractProcessor {
 				writer.append("public class " + traitedClassName + " extends " + trait.getTraitedClass() + " {");
 				writer.newLine();
 
+				// We need to store these and run through the loop 3x to keep the methods/constructors/variables in
+				// their proper spots in the output.
+				// This could be significantly refactored.
 				ArrayList<String> traitClassNames = new ArrayList<String>();
+				ArrayList<String> traitClassQualifiedNames = new ArrayList<String>();
 				ArrayList<String> variableNames = new ArrayList<String>();
 
 				for (Use use : trait.getTraits()) {
@@ -379,22 +383,25 @@ public class Processor extends AbstractProcessor {
 
 					variableNames.add(variableName);
 					traitClassNames.add(traitClassName);
-
-					// Process the methods from the trait class
-					Element traitElement = getMatchingTraitElement(traitElements, traitClassQualifiedName);
-					if (traitElement != null) {
-						for (Element traitSubElement : traitElement.getEnclosedElements()) {
-							if (traitSubElement.getKind() == ElementKind.METHOD) {
-								writer.append(getMethod((ExecutableElement) traitSubElement, traitClassName, traitedClassName, variableName));
-							}
-						}
-					}
+					traitClassQualifiedNames.add(traitClassQualifiedName);
 				}
 
 				// Process the constuctors from the traited class
 				for (Element traitedSubElement : trait.originatingElement.getEnclosedElements()) {
 					if (traitedSubElement.getKind() == ElementKind.CONSTRUCTOR) {
 						writer.append(getConstructor((ExecutableElement) traitedSubElement, traitClassNames, traitedClassName, variableNames));
+					}
+				}
+
+				// Process the methods from the trait class
+				for (int i = 0; i < variableNames.size(); i++) {
+					Element traitElement = getMatchingTraitElement(traitElements, traitClassQualifiedNames.get(i));
+					if (traitElement != null) {
+						for (Element traitSubElement : traitElement.getEnclosedElements()) {
+							if (traitSubElement.getKind() == ElementKind.METHOD) {
+								writer.append(getMethod((ExecutableElement) traitSubElement, traitClassNames.get(i), traitedClassName, variableNames.get(i)));
+							}
+						}
 					}
 				}
 
