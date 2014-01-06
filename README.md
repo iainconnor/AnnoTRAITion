@@ -92,13 +92,13 @@ What you want is to say that `Apple` and `Orange` use the Traits `Tweetable` and
 	
 		Check off *Enable annotation processing*.
 		
-		Add `com.iainconnor.annotraition.Processor` under *Processor FQ Name*.
+		Add `com.iainconnor.annotraition.processor.Processor` under *Processor FQ Name*.
 	
 		![IntellJ Preferences](http://i.imgur.com/zckNWEA.png "Preferences")
 		
 	* Stuck on Eclipse or some other IDE? You'll need to find out how to add these flags to the javac compilation;
 		
-			-proc:only -processor com.iainconnor.annotraition.Processor
+			-proc:only -processor com.iainconnor.annotraition.processor.Processor
 
 ## Usage
 ---

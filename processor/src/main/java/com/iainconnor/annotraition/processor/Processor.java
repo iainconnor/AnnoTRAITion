@@ -1,4 +1,8 @@
-package com.iainconnor.annotraition;
+package com.iainconnor.annotraition.processor;
+
+import com.iainconnor.annotraition.Trait;
+import com.iainconnor.annotraition.Use;
+import com.iainconnor.annotraition.Uses;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;

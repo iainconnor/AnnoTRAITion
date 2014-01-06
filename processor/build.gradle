@@ -1,12 +1,19 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 
-group = 'com.iainconnor'
-version = '1.0.25-SNAPSHOT'
+group = 'com.iainconnor.annotraition'
+version = '1.0.0-SNAPSHOT'
 project.ext.description = "The power of Traits through Annotations."
 
 repositories {
 	mavenCentral()
+	maven {
+		url 'https://raw.github.com/iainconnor/annoTRAITion/master/maven/'
+	}
+}
+
+dependencies {
+	compile 'com.iainconnor:annotraition:1.0.24-SNAPSHOT'
 }
 
 uploadArchives {
@@ -17,7 +24,7 @@ uploadArchives {
 				description project.ext.description
 			}
 			repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
-			repository url: 'file://' + new File("./maven").absolutePath
+			repository url: 'file://' + new File("$rootDir/../maven").absolutePath
 		}
 	}
 }
