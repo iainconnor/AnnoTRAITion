@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'com.iainconnor'
-version = '1.0.26-SNAPSHOT'
+version = '1.0.0'
 project.ext.description = "The power of Traits through Annotations."
 
 repositories {
