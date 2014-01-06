@@ -241,12 +241,8 @@ public class Processor extends AbstractProcessor {
 	 * @return
 	 */
 	protected String getReturnType ( ExecutableElement method ) {
-		String returnType = method.getReturnType().toString();
-		if (method.getKind() == ElementKind.CONSTRUCTOR) {
-			returnType = "";
-		}
 
-		return returnType;
+		return method.getReturnType().toString();
 	}
 
 	/**
@@ -273,6 +269,16 @@ public class Processor extends AbstractProcessor {
 		return exceptions;
 	}
 
+	/**
+	 * Generates the passthrough for a method call to the local variable for the Trait that method should call.
+	 *
+	 * @param method
+	 * @param traitClassName
+	 * @param traitedClassName
+	 * @param variableName
+	 *
+	 * @return
+	 */
 	protected String getMethod ( ExecutableElement method, String traitClassName, String traitedClassName, String variableName ) {
 		String methodSignature = "";
 
@@ -306,17 +312,11 @@ public class Processor extends AbstractProcessor {
 		methodSignature += "\n";
 		methodSignature += "\t\t";
 
-		if (method.getKind() == ElementKind.CONSTRUCTOR) {
-			methodSignature += "super" + getParameters(method, false) + ";";
-			methodSignature += "\n";
-			methodSignature += "\t\tthis." + variableName + " = new " + traitClassName + " (this);";
-		} else {
-			if (!getReturnType(method).contains("void")) {
-				methodSignature += "return ";
-			}
-			methodSignature += "this." + variableName + "." + methodName;
-			methodSignature += getParameters(method, false) + ";";
+		if (!getReturnType(method).contains("void")) {
+			methodSignature += "return ";
 		}
+		methodSignature += "this." + variableName + "." + methodName;
+		methodSignature += getParameters(method, false) + ";";
 
 		methodSignature += "\n";
 		methodSignature += "\t}";
@@ -352,6 +352,9 @@ public class Processor extends AbstractProcessor {
 				writer.append("public class " + traitedClassName + " extends " + trait.getTraitedClass() + " {");
 				writer.newLine();
 
+				ArrayList<String> traitClassNames = new ArrayList<String>();
+				ArrayList<String> variableNames = new ArrayList<String>();
+
 				for (Use use : trait.getTraits()) {
 					// This is a bit of insanity to work around the fact that we can't get a Class directly from an
 					// annotation, but we can if we catch it in an exception.
@@ -374,12 +377,8 @@ public class Processor extends AbstractProcessor {
 					writer.append("\tprotected " + traitClassName + " " + variableName + ";");
 					writer.newLine();
 
-					// Process the constuctors from the traited class
-					for (Element traitedSubElement : trait.originatingElement.getEnclosedElements()) {
-						if (traitedSubElement.getKind() == ElementKind.CONSTRUCTOR) {
-							writer.append(getMethod((ExecutableElement) traitedSubElement, traitClassName, traitedClassName, variableName));
-						}
-					}
+					variableNames.add(variableName);
+					traitClassNames.add(traitClassName);
 
 					// Process the methods from the trait class
 					Element traitElement = getMatchingTraitElement(traitElements, traitClassQualifiedName);
@@ -392,12 +391,63 @@ public class Processor extends AbstractProcessor {
 					}
 				}
 
+				// Process the constuctors from the traited class
+				for (Element traitedSubElement : trait.originatingElement.getEnclosedElements()) {
+					if (traitedSubElement.getKind() == ElementKind.CONSTRUCTOR) {
+						writer.append(getConstructor((ExecutableElement) traitedSubElement, traitClassNames, traitedClassName, variableNames));
+					}
+				}
+
 				writer.append("}");
 				writer.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	/**
+	 * Generates the passthrough for a constructor. Initializes the local variables for the Traits.
+	 *
+	 * @param constructor
+	 * @param traitClassNames
+	 * @param traitedClassName
+	 * @param variableNames
+	 *
+	 * @return
+	 */
+	private String getConstructor ( ExecutableElement constructor, ArrayList<String> traitClassNames, String traitedClassName, ArrayList<String> variableNames ) {
+		String methodSignature = "";
+
+		methodSignature += "\n\t";
+
+		// Process modifiers
+		methodSignature += getModifiers(constructor);
+
+		// Process name
+		String methodName = getMethodName(constructor, traitedClassName);
+		methodSignature += " " + methodName;
+
+		// Process parameters
+		methodSignature += getParameters(constructor, true);
+
+		// Process exceptions
+		methodSignature += getExceptions(constructor);
+
+		// Process constructor signature, which is a passthrough to super() and initializers of all the local variables
+		methodSignature += " {";
+		methodSignature += "\n";
+		methodSignature += "\t\t";
+		methodSignature += "super" + getParameters(constructor, false) + ";";
+		methodSignature += "\n";
+		for (int i = 0; i < traitClassNames.size(); i++) {
+			methodSignature += "\t\tthis." + variableNames.get(i) + " = new " + traitClassNames.get(i) + " (this);";
+			methodSignature += "\n";
+		}
+		methodSignature += "\t}";
+		methodSignature += "\n";
+
+		return methodSignature;
 	}
 
 	/**

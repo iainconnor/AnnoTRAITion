@@ -3,217 +3,183 @@
 AnnoTRAITions brings the flexibility of [PHP 5.4's Traits](http://php.net/traits) to Java by way of an annotation and an associated processor.
 
 ## Introduction
----
 
 Lovingly borrowed from the PHP documentation on the subject, "Traits are a mechanism for code reuse in single inheritance".
 
 In practice, I've found Traits most usefull as a way to add functionality to an existing Class, without interrupting the logical flow of a hierarchy.
 
-By way of an example, say you have a few classes;
+By way of an example, say you have a few Classes;
 
+```
+public class Apple {
+	...
+}
+	
+public class Orange {
+	...
+}
+```
+
+And some snippets of code for shaing a representation of an Object to Facebook or Twitter;
+
+```
+public void postToTwitter(Object toPost) {
+	String postMessage = "Hey, Twitter, check out, '" + toPost.toString() + "'";
+	...
+}
+
+public void postToFacebook(Object toPost) {
+	String postMessage = "Hey, Facebook, check out, '" + toPost.toString() + "'";
+	...
+}
+```
+	
+Now, if you wanted `Apple` and `Orange` to both benifit from all the hard work you put in to write the `postToTwitter` and `postToFacebook` methods, you'd have a few options;
+
+1. Change the methods to be static and wrap them in a class. Then call something like;
+	
+	```
+	Apple apple = new Apple();
+	Twitter.postToTwitter(apple);
+	```
+2. Have `Apple` and `Orange` at some point extend a common Class that has both methods;
+	
+	```
+	Apple apple = new Apple();
+	apple.postToTwitter(apple);
+	```
+3. Traits add an additional option. You can say that all `Apple`s use a Trait called `Tweetable`. They allow you to inject the `postToTwitter` mechanism into your Class without altering your hierarchy, but while still maintaining a relationship between `Apple` and `Tweetable`.
+
+## Installing in Gradle
+
+1. Add the repository to your `build.gradle` file;
+
+	```
+	repositories {
+		mavenCentral()
+    	maven {
+        	url 'https://raw.github.com/iainconnor/annoTRAITion/master/maven/'
+    	}
+	}
+	```
+2. And add the dependency;
+	
+	```
+	dependencies {
+		compile 'com.iainconnor:annotraition:1.0.0'
+	}
+	```
+	
+3. Add the annotation processor.
+
+	If you're writing an Android appplication, I'd recommend using the [android-apt](https://bitbucket.org/hvisser/android-apt/overview) plugin. Otherwise, the [gradle-apt](https://github.com/Jimdo/gradle-apt-plugin) plugin should work. Either way, you'll need to add the processor as an additional dependency;
+	
+	```
+	dependencies {
+		apt 'com.iainconnor.annotraition:processor:1.0.0'
+		compile 'com.iainconnor:annotraition:1.0.0'
+	}
+	```
+	
+	Otherwise, you can use the [gradle-apt](https://github.com/Jimdo/gradle-apt-plugin) plugin
+	
+## Installing in other build tools
+
+1. Download the `.jar` for the latest version [from this repository](https://github.com/iainconnor/AnnoTRAITion/tree/master/maven/com/iainconnor/annotraition).
+2. And the `.jar` for the latest processor [from this repository](https://github.com/iainconnor/AnnoTRAITion/tree/master/maven/com/iainconnor/annotraition/processor).
+3. Add both to your porject and find out how to add these flags to the javac compilation;
+		
+	```
+	-proc:only -processor com.iainconnor.annotraition.processor.Processor
+	```
+
+## Usage
+
+1. Create your Trait. Returning to the example from above, you'll need to add the `@Trait` annotation, have it extend `com.iainconnor.annotraition.MasterTrait`, and implement the Constructor from that Class;
+
+	```
+	@Trait
+	public class Tweetable extends com.iainconnor.annotraition.MasterTrait {
+		public Tweetable(Object traitedObject) {
+			super(traitedObject);
+		}
+		
+		public void postToTwitter() {
+			String postMessage = "Hey, Twitter, check out, '" + traitedObject.toString() + "'";
+			...
+		}
+	}
+	```
+	
+	Note that `MasterTrait` adds an `Object traitedObject`. You can use this Object to get the instance that has the Trait applied to it.
+	
+2. Have your Classes that want to use a Trait do so through the `@Use` annotation;
+
+	```
+	@Use (Tweetable.class)
 	public class Apple {
 		...
 	}
-	
+	```
+
+3. Or your Classes that want to use more than one Trait do so through the `@Uses` annotation;
+
+	```
+	@Uses ({@Use (Tweetable.class), @Use (Facebookable.class)})
 	public class Orange {
 		...
 	}
+	```
 
-One that posts a representation of an Object onto Twitter;
+4. In the rest of your code, use the traited versions of your Classes. After the annotation processor has run, two new classes will be built with the names `_AppleTraited` and `_OrangeTraited`;
 
-	public class Tweetable {
-		public void postToTwitter() {
-			...
-		}
-	}
-	
-And another one that posts a representation of an Object onto Facebook;
-
-	public class Facebookable {
-		public void postToFacebook() {
-			...
-		}
-	}
-	
-Now, if you wanted `Apple` and `Orange` to both benifit from all the hard work you put in to write the `postToTwitter` and `postToFacebook` methods, you'd need to have them both extend some Class that implements both snippets.
-
-But, what if `Apple` and `Orange` already extend some other Class? You could possibily mess with your hierarchy and introduce a common ancestor at some level, but what you really want is a way to inject the `postToTwitter` and `postToFacebook` methods into both Classes. 
-
-What you want is to say that `Apple` and `Orange` use the Traits `Tweetable` and `Facebookable`.
-
-## Installing
----
-
-1. Add AnnoTRAITions to your project.
-	* Add the repository to your `build.gradle` file;
-
-			repositories {
-    			maven {
-        			url 'https://raw.github.com/iainconnor/annoTRAITion/master/maven/'
-    			}
-			}
-	
-	* And add the dependency;
-	
-			dependencies {
-  	  			compile 'com.iainconnor:annotraitions:1.0.0'
-			}
-	
-	* Not building using Gradle? You can grab a .jar version [in this repository](https://github.com/iainconnor/AnnoTRAITion/tree/master/maven/com/iainconnor/annotraition).
-	
-2. Add the annotation processor to Gradle.
-	* Add the excellent [Gradle APT Plugin](https://github.com/Jimdo/gradle-apt-plugin) to your `build.gradle` file;
-	
-			buildscript {
-				dependencies {
-					repositories {
-						maven {
-							mavenCentral()
-							url "https://oss.sonatype.org/content/repositories/snapshots/"
-						}
-					}
-
-					classpath 'com.jimdo.gradle:gradle-apt-plugin:0.2-SNAPSHOT'
-				}
-			}
-	
-	* And apply the plugin;
-	
-			apply plugin: 'apt'
-	
-	* And require the processor to run;
-		
-			apt 'com.iainconnor:annotraition:1.0.0'
-			
-	* Not using Gradle? You can skip this step.
-
-3. Add the annotation processor to your IDE.
-	* If you're using IntelliJ or AndroidStudio, open *Preferences* and select *Compiler > Annotation Processors*.
-	
-		Check off *Enable annotation processing*.
-		
-		Add `com.iainconnor.annotraition.processor.Processor` under *Processor FQ Name*.
-	
-		![IntellJ Preferences](http://i.imgur.com/zckNWEA.png "Preferences")
-		
-	* Stuck on Eclipse or some other IDE? You'll need to find out how to add these flags to the javac compilation;
-		
-			-proc:only -processor com.iainconnor.annotraition.processor.Processor
-
-## Usage
----
-
-1. Create your Trait.
-
-	Returning to the example from above, the `Tweetable` and `Facebookable` Classes are ready to use as Traits. No special coding or configuration needs to be done.
-	
-2. Have your Classes `Use` the Trait through annotations.
-
-	Adding one Trait can be done by providing the Class to the `@Use` annotation;
-	
-		@Use (Facebookable.class)
-		public class Apple {
-			...
-		}
-	
-	Multiple Traits can be added by providing the `@Uses` annotation with an array of `@Use` annotations;
-		
-		@Uses ({@Use (Tweetable.class), @Use (Facebookable.class)})
-		public class Orange {
-			...
-		}
-
-3. Use the annotated version of the Class.
-
-	After the annotation processor has run, two new classes will be built with the names `_AppleTraited` and `_OrangeTraited`.
-	
-	Within your code, you should reference these Classes.
+	```
+	_AppleTraited apple = new _AppleTraited();
+	apple.postToTwitter();
+	```
 
 ### FAQs
----
 
 1. Whats really going on here?
 
 	Good question. I find the easiest way to understand what's at work is to look at the output of our example above. This is the contents of `_OrangeTraited.java` after being annotated;
 	
-		// Generated by AnnoTRAITion.
-    	// Do not edit, your changes will be overridden.
-		public class _OrangeTraited extends Orange {
-    		protected Facebookable facebookable;
+	```
+	// Generated by AnnoTRAITion.
+	// Do not edit, your changes will be overridden.
+	public class _OrangeTraited extends Orange {
+		public _OrangeTraited() {
+			super();
+			this.facebookable = new Facebookable(this);
+			this.tweetable = new Tweetable(this);
+		}
+	
+		protected Facebookable facebookable;
 
-    		/**
-    		 * Passes through to `Facebookable.postToFacebook`.
-    		 */
-    		public void postToFacebook() {
-    			this.facebookable.postToFacebook();
-    		}
+		/**
+		 * Passes through to `Facebookable.postToFacebook`.
+		 */
+		public void postToFacebook() {
+			this.facebookable.postToFacebook();
+		}
 
-    		protected Tweetable tweetable;
+		protected Tweetable tweetable;
 
-    		/**
-    		 * Passes through to `Tweetable.postToTwitter`.
-    		 */
-    		public void postToTwitter() {
-    			tweetable.postToTwitter();
-    		}
-  	  	}
+		/**
+		 * Passes through to `Tweetable.postToTwitter`.
+		 */
+		public void postToTwitter() {
+			tweetable.postToTwitter();
+		}
+	}
+	```
   	  	
-  	  As you can see, local instances of the Traits have been added to this subclass, and any methods in those Traits are wrapped by proxy methods.
-  	  
-  	  Still not convinced? Here's another example.
-  	  
-  	  Given a Trait;
-
-		public class Ipsum {
-			public String foo ( String bar ) {
-
-				return "foo" + bar;
-			}
-		}
-
-	And another Trait;
-
-		public class Sit {
-			public void bar() {
-				System.out.println ( "bar" );
-			}
-		}
-
-	And a Class that `@Uses` both of them;
-
-		@Uses ({@Use (Ipsum.class), @Use (Sit.class)})
-		public class Lorem {
-		}
-
-	The following is the result after the annotation has run;
-
-		// Generated by AnnoTRAITion.
-    	// Do not edit, your changes will be overridden.
-		public class _LoremTraited extends Lorem {
-        	protected Ipsum ipsum;
-
-        	/**
-         	* Passes through to `Ipsum.foo`.
-         	*/
-        	public String foo ( String aString ) {
-            	return this.ipsum.foo(aString);
-        	}
-
-        	protected Sit sit;
-
-        	/**
-         	* Passes through to `Sit.bar`.
-         	*/
-        	public void bar() {
-            	sit.bar();
-        	}
-    	}
+	As you can see, local instances of the Traits have been added to this subclass, and any methods in those Traits are wrapped by proxy methods.
 
 2. I heard that annotations slow down your code execution!
 
 	Many annotations use run-time reflection, which can slow down your application, which is why AnnoTRAITions runs exclusively at compile time. No additional code except the example you see above is added to your run-time processing.
 
 ## Contact
----
 
 Love it? Hate it? Want to make changes to it? Contact me at [@iainconnor](http://www.twitter.com/iainconnor) or [iainconnor@gmail.com](mailto:iainconnor@gmail.com).
