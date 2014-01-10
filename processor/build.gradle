@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-	compile 'com.iainconnor:annotraition:1.0.24-SNAPSHOT'
+	compile 'com.iainconnor:annotraition:1.0.0'
 }
 
 uploadArchives {
