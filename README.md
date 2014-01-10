@@ -76,7 +76,7 @@ Now, if you wanted `Apple` and `Orange` to both benifit from all the hard work y
 	
 	```Groovy
 	dependencies {
-		apt 'com.iainconnor.annotraition:processor:1.0.0'
+		apt 'com.iainconnor.annotraition:processor:1.0.1'
 		compile 'com.iainconnor:annotraition:1.0.0'
 	}
 	```
